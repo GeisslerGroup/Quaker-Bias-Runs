@@ -8,6 +8,7 @@ temp = 340.0
 parser = argparse.ArgumentParser(description="")
 parser.add_argument("-bias", type=str, help="bias value to analyse")
 parser.add_argument("-log", action='store_true', help="plot log of probability")
+parser.add_argument("-show", action='store_true', help="whether to show plot or not")
 args = parser.parse_args()
 
 save = "hist" + args.bias + ".png"
@@ -30,7 +31,9 @@ yb1 = 54.7217
 zb1 = 81.0040
 
 start = 100 * 18 * 240
-start=0
+frames = (len(data) / (240 * 18))
+start = (frames - 101) * 240 * 18
+print start
 
 for i in range (start,size,18):
   if (i + 17 < size):
@@ -50,7 +53,7 @@ for i in range (start,size,18):
 f.close()
 
 hist_data = np.genfromtxt('/home/pratima/Quaker-Bias-Runs/sparse-files/theta' + args.bias + '.txt', delimiter=' ')
-hist_data = np.mean(hist_data.reshape((-1, 240)), axis=1)
+# hist_data = np.mean(hist_data.reshape((-1, 240)), axis=1)
 
 # unbiased_data = np.genfromtxt('/home/pratima/Biased-PeriodicLigand/dump_files/zangle_distr_top.340', delimiter=' ')
 # unbiased_data = -unbiased_data * np.pi / 180.0
@@ -59,7 +62,7 @@ hist_data = np.mean(hist_data.reshape((-1, 240)), axis=1)
 # print np.std(unbiased_data)
 print np.mean(hist_data)
 print np.std(hist_data)
-bins = np.linspace(-1.70, 1.70, 60)
+bins = np.linspace(-1.70, 1.70, 100)
 hist, bins = np.histogram(hist_data, bins = bins, density = True)
 # unbiased_hist, bins = np.histogram(unbiased_data, bins = bins, density = True)
 bin_centres = bins[1:] * 0.5 + bins[:-1] * 0.5
@@ -67,10 +70,13 @@ plt.figure()
 if args.log:
     bin_centres = bin_centres[hist != 0]
     hist = hist[hist != 0]
-    plt.plot(bin_centres, -np.log(hist))
+    if args.show:
+        plt.plot(bin_centres, -np.log(hist))
+        plt.show()
 else:
-    plt.plot(bin_centres, hist, color='blue')
-#     plt.plot(180.0*bin_centres/np.pi, unbiased_hist, color='red')
-plt.show()
+    if args.show:
+        plt.plot(180.0*bin_centres/np.pi, hist, color='blue')
+    #     plt.plot(180.0*bin_centres/np.pi, unbiased_hist, color='red')
+        plt.show()
 # plt.savefig(save)
 

@@ -1,2 +1,6 @@
+log.*
+*.txt
 *.xyz
 dump*
+lig.*
+*.stripped
