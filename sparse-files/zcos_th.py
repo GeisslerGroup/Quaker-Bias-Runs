@@ -50,6 +50,8 @@ for i in range (start,size,18):
 f.close()
 
 hist_data = np.genfromtxt('/home/pratima/Quaker-Bias-Runs/sparse-files/theta' + args.bias + '.txt', delimiter=' ')
+hist_data = np.mean(hist_data.reshape((-1, 240)), axis=1)
+
 # unbiased_data = np.genfromtxt('/home/pratima/Biased-PeriodicLigand/dump_files/zangle_distr_top.340', delimiter=' ')
 # unbiased_data = -unbiased_data * np.pi / 180.0
 
@@ -57,7 +59,7 @@ hist_data = np.genfromtxt('/home/pratima/Quaker-Bias-Runs/sparse-files/theta' + 
 # print np.std(unbiased_data)
 print np.mean(hist_data)
 print np.std(hist_data)
-bins = np.linspace(-1.70, 1.70, 100)
+bins = np.linspace(-1.70, 1.70, 60)
 hist, bins = np.histogram(hist_data, bins = bins, density = True)
 # unbiased_hist, bins = np.histogram(unbiased_data, bins = bins, density = True)
 bin_centres = bins[1:] * 0.5 + bins[:-1] * 0.5
