@@ -33,7 +33,7 @@ zb1 = 81.0040
 start = 100 * 18 * 240
 frames = (len(data) / (240 * 18))
 start = (frames - 500) * 240 * 18
-print start
+print start, frames
 
 for i in range (start,size,18):
   if (i + 17 < size):

@@ -13,10 +13,10 @@ beta = 1 / kBT
 strength = 75000.0
 
 namelist = np.arange(1.15, 1.405, 0.025)
-namelist = np.arange(0.70, 1.45, 0.05)
-namelist = [-0.95, -0.90, -0.85]
+namelist = np.arange(0.35, 0.95, 0.05)
+# namelist = [0.95, 0.90, 0.85]
 N_sims = len(namelist)
-bins = np.linspace(-1.70, 0.0, 400)	
+bins = np.linspace(0.0, 1.70, 1000)
 bins_OG = bins[1:] * 0.5 + bins[:-1] * 0.5 
 
 color = iter(plt.cm.copper(np.linspace(0,1,N_sims)))
@@ -31,12 +31,8 @@ pot_list = []
 for i in namelist:
     c = next(color)
 #     if (np.ceil(i*1000)%100 == 50):
-    if (int(i*100)%10 == 0):
-        data = np.genfromtxt('/home/pratima/Quaker-Bias-Runs/sparse-files/theta' + str(i) + '0.txt', delimiter=' ')
-#     elif (np.ceil(i*1000)%100 == 0):
-#         data = np.genfromtxt('/home/pratima/Biased-PeriodicLigand/dump_files/theta' + str(i) + '00.txt', delimiter=' ')
-    else:
-        data = np.genfromtxt('/home/pratima/Quaker-Bias-Runs/sparse-files/theta' + str(i) + '.txt', delimiter=' ')
+    string ="/home/pratima/Quaker-Bias-Runs/sparse-files/theta{:1.2f}.txt".format(i)
+    data = np.genfromtxt(string, delimiter=' ')
     data = np.mean(data.reshape((-1, 240)), axis=1)
     total_prob, bins = np.histogram(data, bins=bins)
 
@@ -60,8 +56,8 @@ for i in namelist:
     pot_list.append(bias_en)
     err_list.append(err_en)
 
-    plt.plot(bin_centres, free_en, color=c)
-#     plt.plot(bin_centres, total_prob, color=c)
+#     plt.plot(bin_centres, free_en, color=c)
+    plt.plot(bin_centres, total_prob, color=c)
 #     plt.errorbar(bin_centres, free_en, err_en, color=c)
 
 plt.show()
@@ -102,6 +98,7 @@ for i in range(1, len(bin_list)):
         weight = 1 / ( err_plus * err_plus + err_minus * err_minus )
         shift = np.mean( (en_plus - en_minus) * weight ) / np.mean(weight)
     else:
+        print (en_plus - en_minus).shape
         shift = np.mean(en_plus - en_minus)
     en_list[i] = en_list[i] - shift
 
