@@ -4,4 +4,4 @@ log.*
 *.xyz
 dump*
 lig.*
-*.stripped
+*.stripped.*
