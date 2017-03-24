@@ -1,0 +1,7 @@
+log.*
+*.png
+*.txt
+*.xyz
+dump*
+lig.*
+*.stripped

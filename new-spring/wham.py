@@ -17,7 +17,7 @@ beta = 1 / (kBT)
 strength = args.strength
 
 namelist = np.arange(args.lower, args.upper+args.step, args.step)
-namelist = np.arange(-0.9500, -0.5865, 0.0125)
+namelist = np.arange(-0.9500, -0.5875, 0.0125)
 # namelist = np.array(list(np.arange(0.30, 1.15, 0.05)) + list(np.arange(1.20, 1.40, 0.05)))
 # namelist = [-0.40]
 N_sims = len(namelist)
@@ -96,7 +96,7 @@ while (en_diff > tol):
 #     print "numerator", numerator
 #     print "denominator", denominator
 #     print en_list
-#     print en_diff
+    print en_diff
     count = count + 1
 
 str_out = ""
