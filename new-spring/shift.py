@@ -13,13 +13,25 @@ beta = 1 / kBT
 strength = 37500.0
 strength = strength * 1.0
 
-namelist = np.arange(1.15, 1.405, 0.025)
-namelist = np.arange(-0.8125, -0.7525, 0.0125)
-namelist = np.arange(-0.9500, -0.5865, 0.0125)
+# namelist = np.arange(-0.8125, -0.7525, 0.0125)
+# namelist = np.arange(-0.9500, -0.2490, 0.0125)
+namelist_1 = np.arange(-0.9500, -0.2490, 0.0125)
+namelist_2 = np.arange(-0.2250, -0.020, 0.025)
+namelist_3 = np.arange(0.0, 0.1100, 0.025)
+namelist = np.concatenate((namelist_1, namelist_2, namelist_3))
+
+# initialise list of spring constants
+k_list = np.ones(len(namelist))
+for i in range(len(namelist)):
+    if (namelist[i] <= -0.25):
+        k_list[i] = 37500.0
+    else:
+        k_list[i] = 15000.0
+
 # namelist = [-0.50, -0.55, -0.60]
 # namelist = [-0.875, -0.85, -0.825, -0.775, -0.75, -0.725]
 N_sims = len(namelist)
-bins = np.linspace(-1.00, -0.50, 200)
+bins = np.linspace(-1.00, 0.20, 200)
 # bins = np.linspace(-1.20, -0.50, 800)
 bins_OG = bins[1:] * 0.5 + bins[:-1] * 0.5 
 
@@ -32,9 +44,9 @@ err_list = []
 pot_list = []
 
 # get probability distributions and unbias them
-for i in namelist:
-    if ("{:1.4f}".format(i) == "-0.7250"):
-        continue
+for i, strength in zip(namelist, k_list):
+#     if ("{:1.4f}".format(i) == "-0.4750"):
+#         continue
     print i
     c = next(color)
 #     if (np.ceil(i*1000)%100 == 50):
@@ -70,6 +82,7 @@ for i in namelist:
 #     plt.errorbar(bin_centres, free_en, err_en, color=c)
 
 plt.legend(loc='best')
+# plt.show()
 plt.savefig('probdist.png')
 
 if args.left_del:
@@ -117,11 +130,18 @@ zero = min( [ min(arr) for arr in en_list ] )
 
 zero_prob = min( [ min(arr) for arr in log_list ] )
 
+plt.rc('text', usetex=True)
+plt.rc('font', family='serif')
+
 plt.figure(1)
 for i in range(len(bin_list)):
-    plt.plot(bin_list[i], en_list[i] - zero, color='red')
+    plt.plot(bin_list[i], en_list[i] - zero, color='red', linewidth=2)
 #     plt.plot(bin_list[i], np.exp(-(log_prob[i] - zero_prob)), color='red')
 #     plt.plot(bin_list[i], log_list[i] - zero_prob, color='red')
+plt.xlabel(r'$\langle\theta_z\rangle$', fontsize=32)
+plt.ylabel(r'F(\langle\theta_z\rangle)$', fontsize=32)
+plt.xticks(fontsize=28, fontweight='bold')
+plt.yticks(fontsize=28, fontweight='bold')
 plt.show()
 
 

@@ -3,8 +3,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import argparse
 
-temp = 340.0
-
 parser = argparse.ArgumentParser(description="")
 parser.add_argument("-bias", type=str, help="bias value to analyse")
 parser.add_argument("-log", action='store_true', help="plot log of probability")
@@ -15,8 +13,8 @@ args = parser.parse_args()
 
 save = "hist" + args.bias + ".png"
 
-# data = np.genfromtxt('lig.' + args.bias, delimiter=' ')
-data = np.genfromtxt('lig.358.2phase', delimiter=' ')
+data = np.genfromtxt('lig.' + args.bias, delimiter=' ')
+# data = np.genfromtxt('lig.358.DO', delimiter=' ')
 
 size = len(data)
 x0 = 0.0
@@ -25,8 +23,8 @@ z0 = 0.0
 x1 = 0.0
 y1 = 0.0
 z1 = 0.0
-# f = open("theta" + args.bias + ".txt","w")
-f = open("theta-2phase.txt","w")
+f = open("theta" + args.bias + ".txt","w")
+# f = open("theta-DO.txt","w")
 xb0 = 0.0
 yb0 = -54.7217
 zb0 = 0.0
@@ -37,7 +35,7 @@ zb1 = 81.0040
 frames = (len(data) / (240 * 18))
 start = args.start
 start = args.start * 240 * 18
-# start = (frames - 5000) * 240 * 18
+start = (frames - 5000) * 240 * 18
 print start, frames
 
 for i in range (start,size,18):
@@ -57,8 +55,8 @@ for i in range (start,size,18):
 
 f.close()
 
-# hist_data = np.genfromtxt('theta' + args.bias + '.txt', delimiter=' ')
-hist_data = np.genfromtxt('theta-2phase.txt', delimiter=' ')
+hist_data = np.genfromtxt('theta' + args.bias + '.txt', delimiter=' ')
+# hist_data = np.genfromtxt('theta-DO.txt', delimiter=' ')
 if args.reshape:
     hist_data = np.mean(hist_data.reshape((-1, 240)), axis=1)
 
@@ -69,7 +67,7 @@ if args.reshape:
 # print np.std(unbiased_data)
 print np.mean(hist_data)
 print np.std(hist_data)
-bins = np.linspace(-1.70, 0.0, 100)
+bins = np.linspace(-1.70, 1.70, 100)
 hist, bins = np.histogram(hist_data, bins = bins, density = True)
 # unbiased_hist, bins = np.histogram(unbiased_data, bins = bins, density = True)
 bin_centres = bins[1:] * 0.5 + bins[:-1] * 0.5

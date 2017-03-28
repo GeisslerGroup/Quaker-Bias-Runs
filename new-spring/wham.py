@@ -17,11 +17,11 @@ beta = 1 / (kBT)
 strength = args.strength
 
 namelist = np.arange(args.lower, args.upper+args.step, args.step)
-namelist = np.arange(-0.9500, -0.5875, 0.0125)
+namelist = np.arange(0.5875, 0.9510, 0.0125)
 # namelist = np.array(list(np.arange(0.30, 1.15, 0.05)) + list(np.arange(1.20, 1.40, 0.05)))
 # namelist = [-0.40]
 N_sims = len(namelist)
-bins = np.linspace(-1.0, -0.50, 200)		# angles are between 60 and 90 degrees approximately
+bins = np.linspace(0.50, 1.00, 100)		# angles are between 60 and 90 degrees approximately
 bins_OG = bins[1:] * 0.5 + bins[:-1] * 0.5 
 N_theta = np.zeros(len(bins_OG))
 M_alpha = np.zeros(N_sims)
@@ -33,10 +33,9 @@ color = iter(plt.cm.copper(np.linspace(0,1,N_sims)))
 for count, i in enumerate(namelist):
     c = next(color)
     # decide whether to use ceil or int based on which one works (keeps changing :/)
-    if ("{:1.4f}".format(i) == "-0.7250"):
-        continue
 
-    data = np.genfromtxt("theta{:1.4f}.txt".format(i), delimiter=' ')
+    data = np.genfromtxt("theta{:1.4f}.txt".format(-1.0*i), delimiter=' ')
+    data = -1.0 * data
 
     total_prob, bins = np.histogram(data, bins=bins)
     bin_centres = 0.5 * bins[1:] + 0.5 * bins[:-1]
