@@ -135,7 +135,7 @@ plt.rc('font', family='serif')
 
 plt.figure(1)
 for i in range(len(bin_list)):
-    plt.plot(bin_list[i], en_list[i] - zero, color='red', linewidth=2)
+    plt.plot(bin_list[i]*180.0/np.pi, en_list[i] - zero, color='red', linewidth=2)
 #     plt.plot(bin_list[i], np.exp(-(log_prob[i] - zero_prob)), color='red')
 #     plt.plot(bin_list[i], log_list[i] - zero_prob, color='red')
 plt.xlabel(r'$\langle\theta_z\rangle$', fontsize=32)
