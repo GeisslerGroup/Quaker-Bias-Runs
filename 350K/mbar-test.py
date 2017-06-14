@@ -52,10 +52,8 @@ u_lkn = np.swapaxes(u_kln,0,1)
 u_kn = np.reshape(u_lkn, (N_sims, T*N_sims))
 theta_n = np.reshape(theta_kn, T*N_sims)
 N_k = np.ones(N_sims) * T
-my_mbar = pymbar.MBAR(u_kn, N_k)
 # my_mbar.getFreeEnergyDifferences()
 # u_n = u_kn[0, :]
-u_n = np.zeros(T*N_sims)
 
 N_k = np.zeros([N_sims], np.int32)
 N_k[:] = T
@@ -72,6 +70,9 @@ bin_kn = np.zeros([N_sims, T], np.int16)
 nbins = 0
 bin_counts = list()
 bin_centers = list()            # bin_centers[i] is a theta_z value that gives the center of bin i
+nanpos = []
+n_empty_bins = 0
+
 for i in range(nbins_per_angle):
     for j in range(nbins_per_angle):
         val = angle_min + dx * (i + 0.5)
@@ -94,6 +95,9 @@ for i in range(nbins_per_angle):
   
             # increment number of bins
             nbins += 1
+        else:
+            nanpos.append((i, j))
+            n_empty_bins = n_empty_bins + 1
 
 # do MBAR and plot PMF as function of (theta_z, theta_x)
 
@@ -103,9 +107,26 @@ u_n = np.zeros(T*N_sims)
 bin_centers = np.array(bin_centers)
 thz = bin_centers[:,0]
 thx = bin_centers[:,1]
+
+dthz = np.arange(angle_min, angle_max, dx)
+dthx = np.arange(angle_min, angle_max, dx)
+
+# contruct 2d meshgrid array
+nan_thz, nan_thx = np.meshgrid(dthz, dthx)
+nan_f = np.ones(nan_thz.shape) * float('nan')
+
+# populate nan_f matrix
+count = 0
+for (a, b, c) in zip(thz, thx, f_i):
+    pos = np.array( np.where( (np.abs(nan_thz[:,:] - a) <= 0.5*dx) * (np.abs(nan_thx[:,:] - b) <= 0.5*dx) ) )
+    i = int(pos[0])
+    j = int(pos[1])
+    nan_f[i, j] = c
+    count = count + 1
+
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
-ax.scatter(thz, thx, f_i)
+ax.plot_surface(nan_thz, nan_thx, nan_f)
 plt.show()
 
 # nbins=20
