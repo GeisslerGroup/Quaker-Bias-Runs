@@ -7,15 +7,17 @@ parser.add_argument("-w", action='store_true', help="add weights while shifting 
 parser.add_argument("-left_del", action='store_true', help="remove left endpoint of data")
 args = parser.parse_args()
 
-temp = 350.0
-kBT = 0.6955
-beta = 1 / kBT
+temp = 350.18
+beta = 1.43703
 
-# namelist = np.arange(-0.8125, -0.7525, 0.0125)
-# namelist = np.arange(-0.8500, -0.0240, 0.025)
 namelist_1 = np.arange(-0.8500, -0.0240, 0.0250)
 namelist_2 = np.arange(0.0, 0.1060, 0.025)
 namelist = np.concatenate((namelist_1, namelist_2))
+
+namelist_1 = np.arange(-0.8500, -0.5940, 0.0500)
+namelist_2 = np.arange(-0.5750, -0.0240, 0.0250)
+namelist_3 = np.arange(0.000, 0.1040, 0.0250)
+namelist = np.concatenate((namelist_1, namelist_2, namelist_3))
 
 # initialise list of spring constants
 k_list = np.ones(len(namelist)) * 15000.0
@@ -37,8 +39,8 @@ pot_list = []
 
 # get probability distributions and unbias them
 for i, strength in zip(namelist, k_list):
-#     if ("{:1.4f}".format(i) == "-0.7500"):
-#         continue
+    if ("{:1.4f}".format(i) == "0.0250"):
+        continue
     print i
     c = next(color)
 #     if (np.ceil(i*1000)%100 == 50):
