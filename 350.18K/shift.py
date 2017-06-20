@@ -14,8 +14,8 @@ namelist_1 = np.arange(-0.8500, -0.0240, 0.0250)
 namelist_2 = np.arange(0.0, 0.1060, 0.025)
 namelist = np.concatenate((namelist_1, namelist_2))
 
-namelist_1 = np.arange(-0.8500, -0.5940, 0.0500)
-namelist_2 = np.arange(-0.5750, -0.0240, 0.0250)
+namelist_1 = np.arange(-0.8500, -0.7440, 0.0500)
+namelist_2 = np.arange(-0.7250, -0.0240, 0.0250)
 namelist_3 = np.arange(0.000, 0.1040, 0.0250)
 namelist = np.concatenate((namelist_1, namelist_2, namelist_3))
 
@@ -39,7 +39,7 @@ pot_list = []
 
 # get probability distributions and unbias them
 for i, strength in zip(namelist, k_list):
-    if ("{:1.4f}".format(i) == "0.0250"):
+    if ("{:1.4f}".format(i) == "0.0250" or "{:1.4f}".format(i)=="-0.6250"):
         continue
     print i
     c = next(color)

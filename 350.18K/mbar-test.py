@@ -1,13 +1,20 @@
 import pymbar
+import argparse
 import numpy as np
 import matplotlib.pyplot as plt
+import scipy.integrate as integrate
+from scipy import interpolate
 from mpl_toolkits.mplot3d import Axes3D
+
+parser = argparse.ArgumentParser(description="")
+parser.add_argument("-dim", type=float, default=1, help="order parameter dimensionality [1d = th_z, 2d = th_z and th_x]")
+args = parser.parse_args()
 
 # namelist_1 = np.arange(-0.8500, -0.0240, 0.0250)
 # namelist_2 = np.arange(0.0, 0.1040, 0.0250)
 
-namelist_1 = np.arange(-0.8500, -0.5940, 0.0500)
-namelist_2 = np.arange(-0.5750, -0.0240, 0.0250)
+namelist_1 = np.arange(-0.8500, -0.7440, 0.0500)
+namelist_2 = np.arange(-0.7250, -0.0240, 0.0250)
 namelist_3 = np.arange(0.000, 0.1040, 0.0250)
 
 namelist = np.concatenate((namelist_1, namelist_2))
@@ -27,7 +34,7 @@ plt.rc('text', usetex=True)
 plt.rc('font', family='serif')
 
 for k, biasval in enumerate(namelist):
-    if ("{:1.4f}".format(biasval) == "0.0250"):
+    if ("{:1.4f}".format(biasval) == "0.0250" or "{:1.4f}".format(biasval) == "-0.6250"):
         continue
     data = np.genfromtxt('theta{:1.4f}.txt'.format(biasval))
     data = data.reshape((-1, 240))
@@ -35,7 +42,7 @@ for k, biasval in enumerate(namelist):
     theta_kn[k, :] = data_t[:]
 
 for k, biasval in enumerate(namelist):
-    if ("{:1.4f}".format(biasval) == "0.0250"):
+    if ("{:1.4f}".format(biasval) == "0.0250" or "{:1.4f}".format(biasval) == "-0.6250"):
         continue
     data_x = np.genfromtxt('theta_x{:1.4f}.txt'.format(biasval))
     data_x = data_x.reshape((-1, 240))
@@ -78,39 +85,91 @@ bin_kn = np.zeros([N_sims, T], np.int16)
 nbins = 0
 bin_counts = list()
 bin_centers = list()            # bin_centers[i] is a theta_z value that gives the center of bin i
-for i in range(nbins_per_angle):
-    for j in range(nbins_per_angle):
+if (args.dim ==2):
+    for i in range(nbins_per_angle):
+        for j in range(nbins_per_angle):
+            val = angle_min + dx * (i + 0.5)
+            val_x = angle_min + dx * (j + 0.5)
+            # Determine which configurations lie in this bin.
+            in_bin = (val-dx/2 <= theta_kn[indices]) & (theta_kn[indices] < val+dx/2) & (val_x-dx/2 <= theta_x_kn[indices]) & (theta_x_kn[indices] < val_x+dx/2)
+      
+            # Count number of configurations in this bin.
+            bin_count = in_bin.sum()
+      
+            # Generate list of indices in bin.
+            indices_in_bin = (indices[0][in_bin], indices[1][in_bin])
+      
+            if (bin_count > 0):
+                bin_centers.append( (val, val_x) )
+                bin_counts.append( bin_count )
+      
+                # assign these conformations to the bin index
+                bin_kn[indices_in_bin] = nbins
+      
+                # increment number of bins
+                nbins += 1
+
+else:
+# Get bins for 1d order parameter space (theta_z)
+    for i in range(nbins_per_angle):
         val = angle_min + dx * (i + 0.5)
-        val_x = angle_min + dx * (j + 0.5)
         # Determine which configurations lie in this bin.
-        in_bin = (val-dx/2 <= theta_kn[indices]) & (theta_kn[indices] < val+dx/2) & (val_x-dx/2 <= theta_x_kn[indices]) & (theta_x_kn[indices] < val_x+dx/2)
-  
+        in_bin = (val-dx/2 <= theta_kn[indices]) & (theta_kn[indices] < val+dx/2)
+ 
         # Count number of configurations in this bin.
         bin_count = in_bin.sum()
-  
+ 
         # Generate list of indices in bin.
         indices_in_bin = (indices[0][in_bin], indices[1][in_bin])
-  
+ 
         if (bin_count > 0):
-            bin_centers.append( (val, val_x) )
+            bin_centers.append( val )
             bin_counts.append( bin_count )
-  
+ 
             # assign these conformations to the bin index
             bin_kn[indices_in_bin] = nbins
-  
+ 
             # increment number of bins
             nbins += 1
+
 
 # compute and plot PMF as function of (theta_z, theta_x)
 
 [f_i, df_i] = my_mbar.computePMF(u_n, bin_kn, nbins)
 bin_centers = np.array(bin_centers)
-thz = bin_centers[:,0]
-thx = bin_centers[:,1]
-fig = plt.figure()
-ax = fig.add_subplot(111, projection='3d')
-ax.scatter(thz, thx, f_i)
-plt.show()
+
+if (args.dim == 2):
+    thz = bin_centers[:,0]
+    thx = bin_centers[:,1]
+    func = interpolate.bisplrep(thz, thx, f_i)
+    thznew = np.linspace(-0.82, 0.1, 1000)
+    thxnew = np.linspace(-0.085, 0.085, 1000)
+    fnew = interpolate.bisplev(thznew, thxnew, func)
+    fnew = fnew.reshape(-1, 1000)
+    fnew = fnew.T
+    Z, X = np.meshgrid(thznew, thxnew)
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    p1 = ax.plot_surface(Z, X, fnew, cmap=cm.seismic, linewidth=0, antialiased=False, alpha=0.2)
+    p1.set_facecolor((0, 0, 1, 0.2))
+    ax.add_collection3d(p1)
+    ax.scatter(thz, thx, f_i, c='k', alpha=1.0)
+    plt.show()
+
+else:
+    print bin_centers
+    prob_i = np.exp(-f_i)
+    plt.figure()
+    plt.plot(bin_centers, prob_i)
+    plt.show()
+
+    ord_indices = np.where(bin_centers < -0.58)
+    disord_indices = np.where(bin_centers > -0.58)
+    
+    area_ord = integrate.simps(prob_i[ord_indices], bin_centers[ord_indices])
+    area_disord = integrate.simps(prob_i[disord_indices], bin_centers[disord_indices])
+    print area_ord, area_disord
 
 # nbins=20
 # N_tot = N_k.sum()
