@@ -1,6 +1,8 @@
 import pymbar
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib import cm
+from scipy import interpolate
 from mpl_toolkits.mplot3d import Axes3D
 
 namelist_1 = np.arange(-0.8500, -0.0240, 0.0250)
@@ -111,23 +113,41 @@ thx = bin_centers[:,1]
 dthz = np.arange(angle_min, angle_max, dx)
 dthx = np.arange(angle_min, angle_max, dx)
 
-# contruct 2d meshgrid array
-nan_thz, nan_thx = np.meshgrid(dthz, dthx)
-nan_f = np.ones(nan_thz.shape) * float('nan')
+# # contruct 2d meshgrid array
+# nan_thz, nan_thx = np.meshgrid(dthz, dthx)
+# nan_f = np.ones(nan_thz.shape) * float('nan')
+# 
+# # populate nan_f matrix
+# count = 0
+# for (a, b, c) in zip(thz, thx, f_i):
+#     pos = np.array( np.where( (np.abs(nan_thz[:,:] - a) <= 0.5*dx) * (np.abs(nan_thx[:,:] - b) <= 0.5*dx) ) )
+#     i = int(pos[0])
+#     j = int(pos[1])
+#     nan_f[i, j] = c
+#     count = count + 1
 
-# populate nan_f matrix
-count = 0
-for (a, b, c) in zip(thz, thx, f_i):
-    pos = np.array( np.where( (np.abs(nan_thz[:,:] - a) <= 0.5*dx) * (np.abs(nan_thx[:,:] - b) <= 0.5*dx) ) )
-    i = int(pos[0])
-    j = int(pos[1])
-    nan_f[i, j] = c
-    count = count + 1
+# fig = plt.figure()
+# ax = fig.add_subplot(111, projection='3d')
+# ax.plot_surface(nan_thz, nan_thx, nan_f)
+# plt.show()
+
+thznew = np.linspace(-0.82, 0.1, 250)
+thxnew = np.linspace(-0.085, 0.085, 250)
+func = interpolate.bisplrep(thz, thx, f_i)
+fnew = interpolate.bisplev(thznew, thxnew, func)
+fnew = fnew.reshape(-1, 250)
+fnew = fnew.T
+Z, X = np.meshgrid(thznew, thxnew)
 
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
-ax.plot_surface(nan_thz, nan_thx, nan_f)
+p1 = ax.plot_surface(Z, X, fnew, cmap=cm.RdYlGn, linewidth=0, antialiased=False, alpha=0.2)
+p1.set_facecolor((0, 0, 1, 0.2))
+ax.add_collection3d(p1)
+ax.scatter(thz, thx, f_i, c='k', alpha=1.0)
 plt.show()
+
+
 
 # nbins=20
 # N_tot = N_k.sum()
