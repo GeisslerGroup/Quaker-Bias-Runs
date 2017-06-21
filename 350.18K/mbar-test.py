@@ -11,15 +11,18 @@ parser = argparse.ArgumentParser(description="")
 parser.add_argument("-dim", type=float, default=1, help="order parameter dimensionality [1d = th_z, 2d = th_z and th_x]")
 args = parser.parse_args()
 
-# namelist_1 = np.arange(-0.8500, -0.0240, 0.0250)
-# namelist_2 = np.arange(0.0, 0.1040, 0.0250)
+namelist_1 = np.arange(-0.8500, -0.0240, 0.0250)
+namelist_2 = np.arange(0.0, 0.1040, 0.0250)
 
-namelist_1 = np.arange(-0.8500, -0.7440, 0.0500)
-namelist_2 = np.arange(-0.7250, -0.0240, 0.0250)
-namelist_3 = np.arange(0.000, 0.1040, 0.0250)
+# namelist_1 = np.arange(-0.8500, -0.7440, 0.0500)
+# namelist_2 = np.arange(-0.7250, -0.0240, 0.0250)
+# namelist_3 = np.arange(0.000, 0.1040, 0.0250)
 
 namelist = np.concatenate((namelist_1, namelist_2))
-namelist = np.concatenate((namelist_1, namelist_2, namelist_3))
+namelist = np.delete(namelist, np.where(np.abs(namelist--0.625)<.01))
+namelist = np.delete(namelist, np.where(np.abs(namelist-0.025)<.01))
+
+# namelist = np.concatenate((namelist_1, namelist_2, namelist_3))
 
 # repex = np.genfromtxt('repex-350K.txt', delimiter=' ')
 
@@ -35,16 +38,16 @@ plt.rc('text', usetex=True)
 plt.rc('font', family='serif')
 
 for k, biasval in enumerate(namelist):
-    if ("{:1.4f}".format(biasval) == "0.0250" or "{:1.4f}".format(biasval) == "-0.6250"):
-        continue
+#     if ("{:1.4f}".format(biasval) == "0.0250" or "{:1.4f}".format(biasval) == "-0.6250"):
+#         continue
     data = np.genfromtxt('theta{:1.4f}.txt'.format(biasval))
     data = data.reshape((-1, 240))
     data_t = np.mean(data, axis=1)
     theta_kn[k, :] = data_t[:]
 
 for k, biasval in enumerate(namelist):
-    if ("{:1.4f}".format(biasval) == "0.0250" or "{:1.4f}".format(biasval) == "-0.6250"):
-        continue
+#     if ("{:1.4f}".format(biasval) == "0.0250" or "{:1.4f}".format(biasval) == "-0.6250"):
+#         continue
     data_x = np.genfromtxt('theta_x{:1.4f}.txt'.format(biasval))
     data_x = data_x.reshape((-1, 240))
     data_xt = np.mean(data_x, axis=1)
@@ -143,16 +146,16 @@ if (args.dim == 2):
     thz = bin_centers[:,0]
     thx = bin_centers[:,1]
     func = interpolate.bisplrep(thz, thx, f_i)
-    thznew = np.linspace(-0.82, 0.1, 1000)
-    thxnew = np.linspace(-0.085, 0.085, 1000)
+    thznew = np.linspace(-0.73, 0.128, 250)
+    thxnew = np.linspace(-0.084, 0.085, 250)
     fnew = interpolate.bisplev(thznew, thxnew, func)
-    fnew = fnew.reshape(-1, 1000)
+    fnew = fnew.reshape(-1, 250)
     fnew = fnew.T
     Z, X = np.meshgrid(thznew, thxnew)
 
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
-    p1 = ax.plot_surface(Z, X, fnew, cmap=cm.seismic, linewidth=0, antialiased=False, alpha=0.2)
+    p1 = ax.plot_surface(Z, X, fnew, cmap=cm.hot, linewidth=0, antialiased=False, alpha=0.2)
     p1.set_facecolor((0, 0, 1, 0.2))
     ax.add_collection3d(p1)
     ax.scatter(thz, thx, f_i, c='k', alpha=1.0)
