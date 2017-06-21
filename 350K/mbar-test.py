@@ -131,9 +131,13 @@ dthx = np.arange(angle_min, angle_max, dx)
 # ax.plot_surface(nan_thz, nan_thx, nan_f)
 # plt.show()
 
-thznew = np.linspace(-0.82, 0.1, 250)
-thxnew = np.linspace(-0.085, 0.085, 250)
-func = interpolate.bisplrep(thz, thx, f_i)
+zz = thz[np.where(f_i<=20)]
+xx = thx[np.where(f_i<=20)]
+fi = f_i[np.where(f_i<=20)]
+
+thznew = np.linspace(-0.77, 0.0, 250)
+thxnew = np.linspace(-0.119, 0.132, 250)
+func = interpolate.bisplrep(zz, xx, fi)
 fnew = interpolate.bisplev(thznew, thxnew, func)
 fnew = fnew.reshape(-1, 250)
 fnew = fnew.T
@@ -141,10 +145,11 @@ Z, X = np.meshgrid(thznew, thxnew)
 
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
-p1 = ax.plot_surface(Z, X, fnew, cmap=cm.RdYlGn, linewidth=0, antialiased=False, alpha=0.2)
-p1.set_facecolor((0, 0, 1, 0.2))
-ax.add_collection3d(p1)
-ax.scatter(thz, thx, f_i, c='k', alpha=1.0)
+ax.plot_surface(Z, X, fnew, cmap=cm.hot, linewidth=0, antialiased=False, alpha=0.3)
+# p1.set_facecolor((0, 0, 1, 0.2))
+# ax.add_collection3d(p1)
+# ax.scatter(thz, thx, f_i, c='k', alpha=1.0)
+ax.scatter(zz, xx, fi, c='k', alpha=1.0)
 plt.show()
 
 
