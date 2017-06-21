@@ -155,10 +155,11 @@ if (args.dim == 2):
 
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
-    p1 = ax.plot_surface(Z, X, fnew, cmap=cm.hot, linewidth=0, antialiased=False, alpha=0.2)
-    p1.set_facecolor((0, 0, 1, 0.2))
-    ax.add_collection3d(p1)
+    ax.plot_surface(Z, X, fnew, cmap=cm.hot, linewidth=0, antialiased=False, alpha=0.2)
     ax.scatter(thz, thx, f_i, c='k', alpha=1.0)
+    plt.xlabel(r'$\langle\theta_z\rangle$', fontsize=20)
+    plt.ylabel(r'$\langle\theta_x\rangle$', fontsize=20)
+    ax.set_zlabel(r'-\beta\Delta F$', fontsize=20)
     plt.show()
 
 else:
