@@ -20,7 +20,7 @@ namelist_2 = np.arange(0.0, 0.1040, 0.0250)
 
 namelist = np.concatenate((namelist_1, namelist_2))
 namelist = np.delete(namelist, np.where(np.abs(namelist--0.625)<.01))
-namelist = np.delete(namelist, np.where(np.abs(namelist-0.025)<.01))
+# namelist = np.delete(namelist, np.where(np.abs(namelist-0.025)<.01))
 
 # namelist = np.concatenate((namelist_1, namelist_2, namelist_3))
 
@@ -169,8 +169,8 @@ else:
     plt.plot(bin_centers, prob_i)
     plt.show()
 
-    ord_indices = np.where(bin_centers < -0.58)
-    disord_indices = np.where(bin_centers > -0.58)
+    ord_indices = np.where(bin_centers < -0.557)
+    disord_indices = np.where(bin_centers > -0.557)
     
     area_ord = integrate.simps(prob_i[ord_indices], bin_centers[ord_indices])
     area_disord = integrate.simps(prob_i[disord_indices], bin_centers[disord_indices])

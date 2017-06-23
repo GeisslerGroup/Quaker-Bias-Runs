@@ -135,8 +135,13 @@ zz = thz[np.where(f_i<=20)]
 xx = thx[np.where(f_i<=20)]
 fi = f_i[np.where(f_i<=20)]
 
-thznew = np.linspace(-0.77, 0.0, 250)
-thxnew = np.linspace(-0.119, 0.132, 250)
+thzmin = thz.min()
+thzmax = thz.max()
+thxmin = thx.min()
+thxmax = thx.max()
+
+thznew = np.linspace(thzmin + 0.01, thzmax - 0.01, 250)
+thxnew = np.linspace(thxmin + 0.01, thxmax - 0.01, 250)
 func = interpolate.bisplrep(zz, xx, fi)
 fnew = interpolate.bisplev(thznew, thxnew, func)
 fnew = fnew.reshape(-1, 250)
