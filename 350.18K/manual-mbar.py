@@ -69,10 +69,17 @@ for k in range(K):
         u_mbar[ :, sum(N_k[:k]) + i ] = beta * ( uo_ik[k,i] + 0.5 * k_list * np.square(dtheta) )
 
 my_mbar = pymbar.MBAR(u_mbar, N_k)
-u_n = u_mbar[0, :] - u_mbar.min()
-# u_n = np.zeros(N)
+
+u_kn = []
+# populate diagonal blocks in MBAR array
+for i in range(K):
+    u_kn.append(UO_ik[i] * beta)
+u_kn = np.array(u_kn)
+u_n = np.reshape(u_kn, N)
 
 nbins = 100
+
+# one dimensional binning
 theta_n = [val for row in theta_ik for val in row]
 theta_n = np.array(theta_n)
 theta_n_sorted = np.sort(theta_n)
@@ -81,11 +88,24 @@ bin_widths = bins[1:] - bins[0:-1]
 bin_n = np.zeros(theta_n.shape, np.int64)
 bin_n = np.digitize(theta_n, bins) - 1
 
-# compute and plot PMF as function of theta_z
-
 [f_i, df_i] = my_mbar.computePMF(u_n, bin_n, nbins)
 f_i_corrected = f_i - np.log(bin_widths)
 theta_axis = bins[:-1] * .5 + bins[1:] * .5
+
+# two dimensional binning
+delta = (theta_n.max() - theta_n.min()) / float(nbins)
+bin_center_i = np.zeros([nbins], np.float64)
+for i in range(nbins):
+    bin_center_i[i] = theta_n.min() + delta/2 + delta * i
+bin_kn = np.zeros([K,N_max], np.int32)
+for k in range(K):
+    for n in range(N_k[k]):
+        bin_kn[k, n] = int((th_ik[k,n] - theta_n.min()) / delta)
+
+[f_i, df_i] = my_mbar.computePMF(u_kn, bin_kn, nbins)
+theta_axis = bin_center_i
+
+# compute and plot PMF as function of theta_z
 
 prob_i = np.exp(-f_i)
 plt.figure()
