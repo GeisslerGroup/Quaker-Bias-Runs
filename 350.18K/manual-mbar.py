@@ -17,81 +17,62 @@ beta = 1/(kB * 350.18)
 namelist_1 = np.arange(-0.8500, -0.0240, 0.0250)
 namelist_2 = np.arange(0.0, 0.1040, 0.0250)
 
-# namelist_1 = np.arange(-0.8500, -0.7440, 0.0500)
-# namelist_2 = np.arange(-0.7250, -0.0240, 0.0250)
-# namelist_3 = np.arange(0.000, 0.1040, 0.0250)
-
 namelist = np.concatenate((namelist_1, namelist_2))
-# namelist = np.delete(namelist, np.where(np.abs(namelist--0.625)<.01))
-# namelist = np.delete(namelist, np.where(np.abs(namelist-0.025)<.01))
-
-# namelist = np.concatenate((namelist_1, namelist_2, namelist_3))
-
-# repex = np.genfromtxt('repex-350K.txt', delimiter=' ')
 
 # initialise list of spring constants
 k_list = np.ones(len(namelist)) * 15000.0
 
 N_sims = len(namelist)
 T = 5000
-theta_ik = np.zeros((N_sims, T))
-theta_x_ik = np.zeros((N_sims, T))
-U_u_ik = np.zeros((N_sims, T))
-
+theta_ik = []
+VO_ik = []
+UO_ik = []
+ 
 plt.rc('text', usetex=True)
 plt.rc('font', family='serif')
 
 for k, biasval in enumerate(namelist):
-#     if ("{:1.4f}".format(biasval) == "0.0250" or "{:1.4f}".format(biasval) == "-0.6250"):
-#         continue
     data = np.genfromtxt('theta{:1.4f}.txt'.format(biasval))
     data = data.reshape((-1, 240))
     data_t = np.mean(data, axis=1)
-    theta_ik[k, :] = data_t[:]
-
-for k, biasval in enumerate(namelist):
-#     if ("{:1.4f}".format(biasval) == "0.0250" or "{:1.4f}".format(biasval) == "-0.6250"):
-#         continue
-    data_x = np.genfromtxt('theta_x{:1.4f}.txt'.format(biasval))
-    data_x = data_x.reshape((-1, 240))
-    data_xt = np.mean(data_x, axis=1)
-    theta_x_ik[k, :] = data_xt[:]
+    theta_ik.append(data_t)
 
 for k, th in enumerate(namelist):
     lines = np.genfromtxt("pot-350.18.{:1.4f}".format(th))
-    U_u_ik[k, :] = lines * beta
-#     U_u_ik[k, :] = (lines + 0.5 * k_list[k] * (theta_ik[k, :] - th) * (theta_ik[k, :] - th)) * beta
-#     print theta_ik[k, 2], th, lines[2], 0.5 * k_list[k] * (theta_ik[k, 2] - th) * (theta_ik[k, 2] - th) 
+    VO_ik.append(lines)
+    dtheta_i = np.array(theta_ik[k]) - th
+    UO_ik.append( lines - 0.5 * k_list[k] * np.square(dtheta_i) )
 
-U_u_ik = np.array(U_u_ik)
-# theta_ik = theta_ik[:,::5]
-# theta_x_ik = theta_x_ik[:,::5]
-# U_u_ik = U_u_ik[:,::5]
-# T = theta_ik.shape[1]
-bias_kln = namelist.astype(float)[np.newaxis, :, np.newaxis]
-k_list_kln = k_list[np.newaxis, :, np.newaxis]
+N_k = [ len(VO_i) for VO_i in VO_ik ]
+N_k = np.array(N_k)
+u_mbar = np.zeros((len(VO_ik), sum(N_k)))
+K = u_mbar.shape[0]
+N = u_mbar.shape[1]
 
-# initialise MBAR with the data
+count = 0
+# populate diagonal blocks in MBAR array
+for i in range(len(N_k)):
+    u_mbar[ i, count:count+N_k[i] ] = VO_ik[i] * beta
+    count = count + N_k[i]
 
-dtheta_kln = theta_ik[:, np.newaxis, :] - bias_kln
-u_kln = 0.5 * k_list_kln * np.square(dtheta_kln) * beta
-u_lik = np.swapaxes(u_kln,0,1)
-u_ik = np.reshape(u_lik, (N_sims, T*N_sims))
+count = 0
+# populate off-diagonal blocks in MBAR array; go column by column
+for i in range(len(N_k)):
+    for k in range(K):
+        # skip diagonal block
+        if (k == i):
+            continue
+        dtheta_i = np.array(theta_ik[i]) - namelist[i]		# original ensemble
+        dtheta_k = np.array(theta_ik[i]) - namelist[k]	# new ensemble
+#         print k, k_list[k], i, count, UO_ik[i]
+        u_mbar[ k, count:count+N_k[i] ] = beta * ( UO_ik[k] + 0.5 * k * np.square(dtheta_k) ) - beta * ( UO_ik[i] + 0.5 * k_list[i] * np.square(dtheta_i) )
+    count = count + N_k[i]
 
-theta_n = np.reshape(theta_ik, T*N_sims)
-N_k = np.zeros([N_sims], np.int32)
-N_k[:] = T
-N_max = T
-U_u_ilk = np.zeros([N_sims, N_sims, N_max], np.float32)		# u_kli[k,l,n] is reduced potential energy of trajectory segment i of temperature k evaluated at temperature l
-for k in range(N_sims):
-   for l in range(N_sims):
-      U_u_ilk[k,l,0:N_k[k]] = U_u_ik[k,0:N_k[k]]
+# theta_n = np.reshape(theta_ik, T*N_sims)
 
-U_u_ik = np.reshape(U_u_ilk, (N_sims, T*N_sims))
-
-my_mbar = pymbar.MBAR(U_u_ilk, N_k)
+my_mbar = pymbar.MBAR(u_mbar, N_k)
 # u_n = u_kn[0, :]
-u_n = np.zeros(T*N_sims)
+u_n = np.zeros(N)
 
 mask_ik = np.zeros([N_sims,T], dtype=np.bool)
 for k in range(0,N_sims):
