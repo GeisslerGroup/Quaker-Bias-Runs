@@ -17,15 +17,9 @@ beta = 1/(kB * 350.18)
 namelist_1 = np.arange(-0.8500, -0.0240, 0.0250)
 namelist_2 = np.arange(0.0, 0.1040, 0.0250)
 
-# namelist_1 = np.arange(-0.8500, -0.7440, 0.0500)
-# namelist_2 = np.arange(-0.7250, -0.0240, 0.0250)
-# namelist_3 = np.arange(0.000, 0.1040, 0.0250)
-
 namelist = np.concatenate((namelist_1, namelist_2))
 # namelist = np.delete(namelist, np.where(np.abs(namelist--0.625)<.01))
 # namelist = np.delete(namelist, np.where(np.abs(namelist-0.025)<.01))
-
-# namelist = np.concatenate((namelist_1, namelist_2, namelist_3))
 
 # repex = np.genfromtxt('repex-350K.txt', delimiter=' ')
 
@@ -34,9 +28,8 @@ k_list = np.ones(len(namelist)) * 15000.0
 
 N_sims = len(namelist)
 T = 5000
-theta_ik = np.zeros((N_sims, T))
-theta_x_ik = np.zeros((N_sims, T))
-U_u_ik = np.zeros((N_sims, T))
+theta_kn = np.zeros((N_sims, T))
+theta_x_kn = np.zeros((N_sims, T))
 
 plt.rc('text', usetex=True)
 plt.rc('font', family='serif')
@@ -47,7 +40,7 @@ for k, biasval in enumerate(namelist):
     data = np.genfromtxt('theta{:1.4f}.txt'.format(biasval))
     data = data.reshape((-1, 240))
     data_t = np.mean(data, axis=1)
-    theta_ik[k, :] = data_t[:]
+    theta_kn[k, :] = data_t[:]
 
 for k, biasval in enumerate(namelist):
 #     if ("{:1.4f}".format(biasval) == "0.0250" or "{:1.4f}".format(biasval) == "-0.6250"):
@@ -55,54 +48,37 @@ for k, biasval in enumerate(namelist):
     data_x = np.genfromtxt('theta_x{:1.4f}.txt'.format(biasval))
     data_x = data_x.reshape((-1, 240))
     data_xt = np.mean(data_x, axis=1)
-    theta_x_ik[k, :] = data_xt[:]
+    theta_x_kn[k, :] = data_xt[:]
 
-for k, th in enumerate(namelist):
-    lines = np.genfromtxt("pot-350.18.{:1.4f}".format(th))
-    U_u_ik[k, :] = lines * beta
-#     U_u_ik[k, :] = (lines + 0.5 * k_list[k] * (theta_ik[k, :] - th) * (theta_ik[k, :] - th)) * beta
-#     print theta_ik[k, 2], th, lines[2], 0.5 * k_list[k] * (theta_ik[k, 2] - th) * (theta_ik[k, 2] - th) 
-
-U_u_ik = np.array(U_u_ik)
-# theta_ik = theta_ik[:,::5]
-# theta_x_ik = theta_x_ik[:,::5]
-# U_u_ik = U_u_ik[:,::5]
-# T = theta_ik.shape[1]
+theta_kn = theta_kn[:,::5]
+theta_x_kn = theta_x_kn[:,::5]
+T = theta_kn.shape[1]
 bias_kln = namelist.astype(float)[np.newaxis, :, np.newaxis]
 k_list_kln = k_list[np.newaxis, :, np.newaxis]
 
-# initialise MBAR with the data
-
-dtheta_kln = theta_ik[:, np.newaxis, :] - bias_kln
+dtheta_kln = theta_kn[:, np.newaxis, :] - bias_kln
 u_kln = 0.5 * k_list_kln * np.square(dtheta_kln) * beta
-u_lik = np.swapaxes(u_kln,0,1)
-u_ik = np.reshape(u_lik, (N_sims, T*N_sims))
-
-theta_n = np.reshape(theta_ik, T*N_sims)
-N_k = np.zeros([N_sims], np.int32)
-N_k[:] = T
-N_max = T
-U_u_ilk = np.zeros([N_sims, N_sims, N_max], np.float32)		# u_kli[k,l,n] is reduced potential energy of trajectory segment i of temperature k evaluated at temperature l
-for k in range(N_sims):
-   for l in range(N_sims):
-      U_u_ilk[k,l,0:N_k[k]] = U_u_ik[k,0:N_k[k]]
-
-U_u_ik = np.reshape(U_u_ilk, (N_sims, T*N_sims))
-
-my_mbar = pymbar.MBAR(U_u_ilk, N_k)
+u_lkn = np.swapaxes(u_kln,0,1)
+# u_lkn.shape
+u_kn = np.reshape(u_lkn, (N_sims, T*N_sims))
+theta_n = np.reshape(theta_kn, T*N_sims)
+N_k = np.ones(N_sims) * T
+my_mbar = pymbar.MBAR(u_kn, N_k)
 # u_n = u_kn[0, :]
 u_n = np.zeros(T*N_sims)
 
-mask_ik = np.zeros([N_sims,T], dtype=np.bool)
+N_k = np.zeros([N_sims], np.int32)
+N_k[:] = T
+mask_kn = np.zeros([N_sims,T], dtype=np.bool)
 for k in range(0,N_sims):
-    mask_ik[k,0:N_k[k]] = True
-indices = np.where(mask_ik)
+    mask_kn[k,0:N_k[k]] = True
+indices = np.where(mask_kn)
 
-nbins_per_angle = 100
+nbins_per_angle = 500
 angle_min = -0.9
 angle_max = +0.2
 dx = (angle_max - angle_min) / float(nbins_per_angle)
-bin_ik = np.zeros([N_sims, T], np.int16)
+bin_kn = np.zeros([N_sims, T], np.int16)
 nbins = 0
 bin_counts = list()
 bin_centers = list()            # bin_centers[i] is a theta_z value that gives the center of bin i
@@ -112,7 +88,7 @@ if (args.dim ==2):
             val = angle_min + dx * (i + 0.5)
             val_x = angle_min + dx * (j + 0.5)
             # Determine which configurations lie in this bin.
-            in_bin = (val-dx/2 <= theta_ik[indices]) & (theta_ik[indices] < val+dx/2) & (val_x-dx/2 <= theta_x_ik[indices]) & (theta_x_ik[indices] < val_x+dx/2)
+            in_bin = (val-dx/2 <= theta_kn[indices]) & (theta_kn[indices] < val+dx/2) & (val_x-dx/2 <= theta_x_kn[indices]) & (theta_x_kn[indices] < val_x+dx/2)
       
             # Count number of configurations in this bin.
             bin_count = in_bin.sum()
@@ -125,7 +101,7 @@ if (args.dim ==2):
                 bin_counts.append( bin_count )
       
                 # assign these conformations to the bin index
-                bin_ik[indices_in_bin] = nbins
+                bin_kn[indices_in_bin] = nbins
       
                 # increment number of bins
                 nbins += 1
@@ -135,7 +111,7 @@ else:
     for i in range(nbins_per_angle):
         val = angle_min + dx * (i + 0.5)
         # Determine which configurations lie in this bin.
-        in_bin = (val-dx/2 <= theta_ik[indices]) & (theta_ik[indices] < val+dx/2)
+        in_bin = (val-dx/2 <= theta_kn[indices]) & (theta_kn[indices] < val+dx/2)
  
         # Count number of configurations in this bin.
         bin_count = in_bin.sum()
@@ -148,14 +124,14 @@ else:
             bin_counts.append( bin_count )
  
             # assign these conformations to the bin index
-            bin_ik[indices_in_bin] = nbins
+            bin_kn[indices_in_bin] = nbins
  
             # increment number of bins
             nbins += 1
 
 # compute and plot PMF as function of (theta_z, theta_x)
 
-[f_i, df_i] = my_mbar.computePMF(u_n, bin_ik, nbins)
+[f_i, df_i] = my_mbar.computePMF(u_n, bin_kn, nbins) 
 bin_centers = np.array(bin_centers)
 
 if (args.dim == 2):
