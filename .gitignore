@@ -1,3 +1,5 @@
+*.tga
+*.png
 pot*
 log.*
 *.txt
