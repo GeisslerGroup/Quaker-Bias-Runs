@@ -12,7 +12,7 @@ reshaped_dims = np.reshape(biaslist, (-1, 4)).shape
 im_arr = []
 
 for bias in biaslist:
-    im_arr.append(plt.imread('a-g{:1.4f}-surf.tga'.format(bias)))
+    im_arr.append(plt.imread('cropped-a-g{:1.4f}-surf.tga'.format(bias)))
 
 im_arr = np.array(im_arr)
 
@@ -22,8 +22,8 @@ for k, bias in enumerate(biaslist):
     subplot = fig.add_subplot(reshaped_dims[0], reshaped_dims[1], k+1)
     subplot.imshow(im_arr[k])
     subplot.set_title(r'$\langle\theta_z\rangle = {:1.4f}$'.format(bias), fontsize=24)
-    subplot.set_xlim([300, 900])
-    subplot.set_ylim([750, 250])
+#     subplot.set_xlim([300, 900])
+#     subplot.set_ylim([750, 250])
     subplot.axis('off')
 
 plt.savefig('surf-a-g.png')
@@ -34,7 +34,7 @@ plt.close()
 im_arr = []
 
 for bias in biaslist:
-    im_arr.append(plt.imread('a-g{:1.4f}-vdw.tga'.format(bias)))
+    im_arr.append(plt.imread('cropped-a-g{:1.4f}-vdw.tga'.format(bias)))
 
 im_arr = np.array(im_arr)
 
@@ -44,8 +44,8 @@ for k, bias in enumerate(biaslist):
     subplot = fig.add_subplot(reshaped_dims[0], reshaped_dims[1], k+1)
     subplot.imshow(im_arr[k])
     subplot.set_title(r'$\langle\theta_z\rangle = {:1.4f}$'.format(bias), fontsize=24)
-    subplot.set_xlim([300, 900])
-    subplot.set_ylim([750, 250])
+#     subplot.set_xlim([300, 900])
+#     subplot.set_ylim([750, 250])
     subplot.axis('off')
 
 plt.savefig('vdw-a-g.png')
