@@ -10,7 +10,7 @@ args = parser.parse_args()
 n_atoms = 22116
 n_lines = n_atoms + 2
 
-with open("dump-" + args.phase + "-351-more.xyz") as f:
+with open("dump-" + args.phase + "-351.xyz") as f:
     for n, l in enumerate(f):
         if (n//n_lines) % args.step == 0:
             print l,

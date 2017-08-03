@@ -10,7 +10,7 @@ plt.rc('text', usetex=True)
 plt.rc('font', family='serif')
 
 hist_data = np.genfromtxt('theta' + args.bias + '.txt', delimiter=' ')
-mean_data = np.mean(hist_data.reshape((-1, 240)), axis=1)
+mean_data = np.mean(hist_data.reshape((-1, 240)), axis=1)[3500:]
 
 # unbiased_data = np.genfromtxt('/home/pratima/Biased-PeriodicLigand/dump_files/zangle_distr_top.340', delimiter=' ')
 # unbiased_data = -unbiased_data * np.pi / 180.0
@@ -19,6 +19,8 @@ mean_data = np.mean(hist_data.reshape((-1, 240)), axis=1)
 # print np.std(unbiased_data)
 print np.mean(hist_data)
 print np.std(hist_data)
+print np.mean(mean_data)
+print np.std(mean_data)
 bins = np.linspace(-1.70, 0.0, 100)
 meanbins = np.linspace(-0.9, -0.6, 100)
 hist, bins = np.histogram(hist_data, bins = bins, density = True)

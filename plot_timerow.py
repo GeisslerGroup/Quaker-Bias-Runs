@@ -19,6 +19,16 @@ data_txz = np.zeros(data.shape)
 data_txz[:, ::2, :] = data[:, 0:10, :]
 data_txz[:, 1::2, :] = data[:, 10:20, :]
 data = data_txz
+mean_xz = np.mean(data, axis=0)
+T = data.shape[0]
+X = data.shape[1]
+Z = data.shape[2]
+pnt = ""
+for row in range(X):
+    strs = ["{:+1.4f}".format(x).zfill(5) for x in mean_xz[row, :]]
+    pnt = pnt + str(row).zfill(2) + " " + " ".join(strs)
+    pnt = pnt + "\n"
+print pnt
 
 if args.row == "x":
     mean_tz = np.mean(data, axis=1)
@@ -48,13 +58,15 @@ if args.row == "x":
     plt.colorbar()
     plt.show()
 
+start = 0
 if args.row == "z":
-    mean_tx = np.mean(data, axis=2)
+    mean_tx = np.mean(data[start:], axis=2)
+    print np.mean(np.mean(mean_tx, axis=0))
     max_val = max([max(row) for row in mean_tx])
-    print max_val
+#     print max_val
     min_val = min([min(row) for row in mean_tx])
     mid = (max_val - min_val) * 0.5
-    print min_val
+#     print min_val
     if args.clean:
         mean_tx[mean_tx < (min_val + 0.1)*np.pi/180.0] = mid*np.pi/180.0	# set disordered angles to mid_val
     mean_tx = np.transpose(mean_tx)
@@ -62,7 +74,7 @@ if args.row == "z":
     plt.figure()
 #     plt.subplot(2,1,1)
 #     plt.imshow(mean_tx, aspect=len(data)/20, cmap="plasma", origin="lower", vmin=30*np.pi/180, vmax=53*np.pi/180, interpolation="none")
-    plt.imshow(mean_tx, aspect=len(data)/20, cmap="plasma", origin="lower", vmin=min_val, vmax=max_val, interpolation="none")
+    plt.imshow(mean_tx, aspect=len(data[start:])/20, cmap="plasma", origin="lower", vmin=min_val, vmax=max_val, interpolation="none")
     plt.yticks(np.arange(0, 21, 1))
     # plt.ylim(-0.5,20.5)
     for i in np.arange(0,20,1):
