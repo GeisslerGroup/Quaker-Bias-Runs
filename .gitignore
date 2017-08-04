@@ -1,7 +1,8 @@
+temp*
 *.tga
 *.png
 pot*
-log.*
+log*
 *.txt
 *.xyz
 dump*
