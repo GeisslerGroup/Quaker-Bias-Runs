@@ -12,7 +12,7 @@ parser.add_argument("-dim", type=float, default=1, help="order parameter dimensi
 args = parser.parse_args()
 
 kB = 1.3806503 * 6.0221415 / 4184.0
-beta = 1/(kB * 351.0)
+beta = 1/(kB * 354)
 
 namelist_1 = np.arange(-0.8500, -0.0240, 0.0250)
 namelist_2 = np.arange(0.0, 0.1040, 0.0250)
@@ -38,10 +38,10 @@ for k, biasval in enumerate(namelist):
     theta_ik.append(data_t)
 
 for k, th in enumerate(namelist):
-    lines = np.genfromtxt("pot-351.{:1.4f}".format(th))
-    VO_ik.append(lines[5000:, 1])
+    lines = np.genfromtxt("pot-354{:1.4f}".format(th))
+    VO_ik.append(lines)
     dtheta_i = np.array(theta_ik[k]) - th
-    UO_ik.append( lines[5000:, 1] - 0.5 * k_list[k] * np.square(dtheta_i) )
+    UO_ik.append( lines - 0.5 * k_list[k] * np.square(dtheta_i) )
 
 N_k = [ len(VO_i) for VO_i in VO_ik ]
 N_k = np.array(N_k)
@@ -76,40 +76,68 @@ for i in range(K):
     u_kn.append(UO_ik[i] * beta)
 u_kn = np.array(u_kn)
 u_n = np.reshape(u_kn, N)
-
-nbins = 100
 theta_n = [val for row in theta_ik for val in row]
 theta_n = np.array(theta_n)
 
-# one dimensional binning
-theta_n_sorted = np.sort(theta_n)
-bins = np.append(theta_n_sorted[0::int(N/nbins)], theta_n_sorted.max()+0.005)
-bin_widths = bins[1:] - bins[0:-1]
-bin_n = np.zeros(theta_n.shape, np.int64)
-bin_n = np.digitize(theta_n, bins) - 1
 
-[f_i, df_i] = my_mbar.computePMF(u_n, bin_n, nbins)
-f_i_corrected = f_i - np.log(bin_widths)
-theta_axis = bins[:-1] * .5 + bins[1:] * .5
+# one dimensional binning
+# nbins = 250
+# theta_n_sorted = np.sort(theta_n)
+# bins = np.append(theta_n_sorted[0::int(N/nbins)], theta_n_sorted.max()+0.005)
+# bin_widths = bins[1:] - bins[0:-1]
+# bin_n = np.zeros(theta_n.shape, np.int64)
+# bin_n = np.digitize(theta_n, bins) - 1
+# 
+# [f_i, df_i] = my_mbar.computePMF(u_n, bin_n, nbins)
+# f_i_corrected = f_i - np.log(bin_widths)
+# theta_axis = bins[:-1] * .5 + bins[1:] * .5
 
 # two dimensional binning
-delta = (theta_n.max() - theta_n.min()) / float(nbins)
-bin_center_i = np.zeros([nbins], np.float64)
-for i in range(nbins):
-    bin_center_i[i] = theta_n.min() + delta/2 + delta * i
-bin_kn = np.zeros([K,N_max], np.int32)
-for k in range(K):
-    for n in range(N_k[k]):
-        bin_kn[k, n] = int((th_ik[k,n] - theta_n.min()) / delta)
+mask_kn = np.zeros([K,N_max], dtype=np.bool)
+for k in range(0,K):
+   mask_kn[k,0:N_k[k]] = True
+# Create a list from this mask.
+indices = np.where(mask_kn)
+max_bins = 250
+nbins = 0
+min_val = theta_n.min()
+max_val = theta_n.max()
+delta = (max_val - min_val) / float(max_bins)
+bin_kn = np.zeros([K,N_max], np.int16)
+bin_centers = list()
+bin_counts = list()
+
+# binning just for theta_z
+for i in range(max_bins):
+    val = min_val + delta * (i + 0.5)
+    # Determine which configurations lie in this bin.
+    in_bin = (val-delta/2 <= th_ik[indices]) & (th_ik[indices] < val+delta/2) 
+  
+    # Count number of configurations in this bin.
+    bin_count = in_bin.sum()
+
+    # Generate list of indices in bin.
+    indices_in_bin = (indices[0][in_bin], indices[1][in_bin])
+
+    if (bin_count > 0):
+        bin_centers.append( val )
+        bin_counts.append( bin_count )
+ 
+        # assign these conformations to the bin index
+        bin_kn[indices_in_bin] = nbins
+ 
+        # increment number of bins
+        nbins += 1
 
 [f_i, df_i] = my_mbar.computePMF(u_kn, bin_kn, nbins)
-theta_axis = bin_center_i
+theta_axis = np.array(bin_centers)
 
 # compute and plot PMF as function of theta_z
 
 prob_i = np.exp(-f_i)
 plt.figure()
-plt.plot(theta_axis, f_i)
+plt.plot(theta_axis, f_i, 'bo')
+plt.fill_between(theta_axis, f_i - 2*df_i, f_i+2*df_i, color="#2020CC", alpha=0.4)
 plt.show()
 
 ord_indices = np.where(theta_axis < -0.557)
