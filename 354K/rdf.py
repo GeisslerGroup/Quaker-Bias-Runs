@@ -14,7 +14,7 @@ n_lines = n_atoms + 2
 x = []
 y = []
 z = []
-with open("solvent-0.8500-big.txt") as f:
+with open("solvent-0.7250-big.txt") as f:
 # with open("solvent-0.7500.txt") as f:
     for n, l in enumerate(f):
         l_arr = l.split()
@@ -37,7 +37,11 @@ for i in range(len(ybins) - 1):
     indices = np.where( (y >= ybins[i]) * (y < ybins[i+1]) )
     hist[i] = len(y[indices])
 
+Lx = 82.4293 * 0.1
+Lz = 81.004 * 0.1
+dy = (ybins[1] - ybins[0]) * 0.1
 newhist = hist/np.sum(hist)
+newhist = newhist / (Lx * Lz * dy)
 plt.plot(newbins, newhist, 'bo')
 plt.plot(newbins, newhist, color="#2020CC", linewidth=4, alpha=0.6)
 plt.vlines(35, 0, 0.02, color='k')

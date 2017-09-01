@@ -11,7 +11,8 @@ n_atoms = 22116
 n_lines = n_atoms + 2
 
 # with open("dump-nospring-" + args.phase + ".xyz") as f:
-with open("dump-moving" + args.phase + ".xyz") as f:
+# with open("dump-moving" + args.phase + ".xyz") as f:
+with open("dump-ord" + args.phase + ".xyz") as f:
     for n, l in enumerate(f):
         if (n//n_lines) % args.step == 0:
             print l,
