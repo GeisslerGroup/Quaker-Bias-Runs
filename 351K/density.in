@@ -1,0 +1,60 @@
+# Oleic acid simulation
+
+# initialization
+units			real
+atom_style		molecular
+boundary		p p p
+bond_style		harmonic
+angle_style		harmonic
+dihedral_style		opls
+improper_style		harmonic
+
+variable		TargetT equal 351
+# variable		TargetP equal 18.78
+
+# read_data		solv.data
+read_restart		restart-big-0.7250
+
+group			CH3 type 1
+group			CH2 type 2
+group			solvent type 1 2
+
+change_box		all y scale 2 units box
+
+# compute			MyTemp solvent temp
+
+# define interactions
+pair_style		lj/cut 14.0
+pair_modify		shift yes mix arithmetic
+
+pair_coeff		1 1 0.195 3.75			# for CH3 atoms
+pair_coeff		2 2 0.0914 3.95			# for CH2 atoms
+
+bond_coeff		1 95.9 1.54
+
+angle_coeff		1 62.1 114
+
+dihedral_coeff		1 1.4114 -0.2711 3.1458 0
+
+# calculate solvent density here
+variable		TargetDens equal 0.02756
+variable		xlo equal 0
+variable		xhi equal 80
+variable		ylo equal 40
+variable		yhi equal 55
+variable		zlo equal 0
+variable		zhi equal 80
+region			BulkSolv block ${xlo} ${xhi} ${ylo} ${yhi} ${zlo} ${zhi} side in units box
+variable		SolvDens equal count(solvent,BulkSolv)/((v_xhi-v_xlo)*(v_yhi-v_ylo)*(v_zhi-v_zlo))
+
+# simulation parameters
+thermo_style		custom step temp etotal ke pe vol press v_SolvDens
+thermo			100
+
+reset_timestep		0
+# fix			1 solvent npt temp ${TargetT} ${TargetT} 10 iso ${TargetP} ${TargetP} 1000
+fix			1 solvent nvt temp ${TargetT} ${TargetT} 10
+minimize		1.0e-4 1.0e-6 100 1000
+unfix			1
+
+
